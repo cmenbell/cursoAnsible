@@ -1,0 +1,34 @@
+- hosts: all #Alias
+#Opciones de conexion
+  remote_user: root
+  #Tareas
+  tasks:
+  
+  #Modulos
+   - name: Que no esté nano
+     apt: name=nano state=absent
+     #MODULO
+        #Propiedades del modulo
+        
+     
+   - name: que esté vim
+     apt: name=vim state=present   
+     
+   - name: instalar nginx
+     apt: name=nginx state=present
+     
+   - name: curl install
+     apt: name=curl state=present
+
+    apt
+     #Etapa 1
+     #
+     #Inventario - 3 maquinas en 1 grupo, mediante rangos numéricos
+     # Ubuntu01 -
+     # Ubuntu02 -
+     # Ubuntu03 - No se puede conectar
+     
+     #Playbook
+        # apt update
+        # apt upgrade
+        # creación de un usuario linux

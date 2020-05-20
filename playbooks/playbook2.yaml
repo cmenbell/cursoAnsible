@@ -1,0 +1,23 @@
+- hosts: all #Alias
+#Opciones de conexion
+  remote_user: root
+ 
+  #Tareas
+  tasks:
+  
+    - name: apt update
+      apt: 
+        upgrade: dist   
+    - name: apt upgrade
+      apt:
+        force_apt_get: yes
+    - name: crear nuevo usuario
+      user: 
+        name: prueba
+        createhome: yes 
+        state: present
+      register: prueba
+    - authorized_key:
+        user: prueba
+        state: present
+        key: "{{ lookup('file', '/home/ubuntu/.ssh/id_rsa.pub') }}"
