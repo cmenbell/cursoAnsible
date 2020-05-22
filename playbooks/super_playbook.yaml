@@ -188,3 +188,34 @@
         msg: "Me ejecuto opcionalmente 2"
       listen: mievento
       
+      
+  - name: Primer tag
+    debug:
+      msg: "hola que hase"
+    tags:
+      - instalaciones
+      - preparacion
+      
+# ansible-platbook mificheroplaybook -i mificheroinventario --tags "instalaciones, configuraciones"
+
+#anchors ansible ---> punteros
+
+  - name: Varias tareas a ejecutar de golpe
+    block:
+      - name: Primera tarea del bloque
+        debug:
+          msg: "Hola"
+          
+      - name: Segunda tarea del bloque
+        debug:
+          msg: "Adios"
+    rescue:
+      - name: Tarea de rescate, en caso de que se produzca un error dentro del block
+        debug:
+          msg: "que te pasa?"
+    always:
+      - name: Tarea que se va a ejecutar despues del block y/o despues del rescue
+        debug:
+          msg: "bye!!!!"
+
+
