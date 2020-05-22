@@ -1,0 +1,12 @@
+---
+# tasks file for test
+- name: Primera tarea del rol
+  debug:
+    msg: "Soy la primera tarea de {{ nombre_del_rol }}"
+    
+- name: Segunda tarea del rol
+  debug:
+    msg: "Soy la segunda tarea"
+  changed_when: True
+  notify: mievento1
+  #became: True --> es como un sudo

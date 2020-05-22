@@ -1,8 +1,7 @@
 - hosts: ubuntu01 #Alias
 #Opciones de conexion
   remote_user: root
+  gather_facts: False
  
-  #Tareas
   roles:
     - test
-  

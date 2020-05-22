@@ -1,11 +1,19 @@
 all:
-    
+    hosts:
+        ubuntu01:
+            ansible_connection: ssh
+            ansible_user: root
+            ansible_port: 22
+            sistema2: 18.04
     children:
-        ubuntu:
+        ubuntus:
             hosts:
-                ubuntu0[1:3]:
+                ubuntu0[2:3]:
                     ansible_connection: ssh
                     ansible_user: root
                     ansible_port: 22
+                    sistema2: 16.04
+    vars:
+        sistema: Ubuntu
         
     

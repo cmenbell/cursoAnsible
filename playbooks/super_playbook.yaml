@@ -1,0 +1,190 @@
+#Este es mi fichero de playbook
+--- #crea un nuevo play
+#contra quien opero
+- hosts: ubuntu01 #, ubuntu02
+
+  #Opciones de conexión
+  remote_user: root
+  order: inventory # reverse_inventory | sorted | reverse_sorted | shuffle
+  #Ansible va ejecutando los tasks de manera secuencial pero en paralelo sobre diferentes entornos
+  #Por defecto lo hace de 5 en 5, se puede configurar
+  
+  #Variables TO-DO
+  vars:
+    variable1: Hola
+    variable2: 22
+    #Varible de diccionario
+    variable3:
+        subvalor1: 1
+        subvalor2: 2
+  # OJO, las {} indican diccionario, las [] indican lista
+  # comienza la definicion de tareaas
+  tasks:
+  
+    #Comienza una tarea
+    - name: Mi primera tarea
+      debug:
+        #Si quiero usar variables, uso doble llave y el texto entre comillas"
+        #https://docs.ansible.com/ansible/latest/user_guide/playbooks_templating.html
+        msg: "{{ variable1 }}, voy a comenzar una tarea"
+    
+    #Comienzo otra tarea
+    - name: Mi segunda tarea
+      debug:
+        # !unsafe evita que un texto se porcese por JINJA
+        msg: !unsafe "En ninja va todo con dobles llaves {{ aqui va mi variable}}"
+        
+    #Comienzo otra tarea
+    - name: Mi tercera tarea
+      debug:
+        msg: "{{ variable1 }}, voy a comenzar la tarea {{ numerotarea }}, en el servidor {{ sistema}} {{sistema2 }}"
+        #Puedo definir variables a nivel de tarea
+      vars:
+        numerotarea: 3
+        
+    #Comienzo otra tarea con variables de diccionario
+    - name: Mi cuarta tarea
+      debug:
+        msg: >
+            "Valores del diccionario {{ variable3.subvalor1 }}"
+            "Valores del diccionario {{ variable3.subvalor2 }}"
+
+    #Comienzo tarea de facts
+    - name: Mi  tarea de facts
+      debug:
+        #msg: "{{ ansible_facts }}"
+        var: ansible_facts.dns.nameservers[0]
+  
+    #Tareas CONDICIONALES
+    - name: Mitarea Condicional
+      debug:
+        msg: "He entrado!!!"
+      when: #Esta sintaxis es un AND encubierto (se puede usar tambien or)
+        - ansible_facts.distribution == 'Ubuntu' 
+        - sistema2 == 18.04
+        
+    - name: Mi tarea normalita
+      debug:
+        msg: "Me ejecuto normalmente 1"
+      changed_when: False
+      notify: 
+        - tarea opcional 1
+        
+    - name: Mi tarea normalita 2
+      debug:
+        msg: "Me ejecuto normalmente 2"
+      changed_when: True
+      notify: 
+        - mievento
+        
+    #Una tarea que explota
+    - name: Mi tarea explosiva
+      shell:
+        cmd: umane
+      ignore_errors: True
+      failed_when: explosiva.rc > 100
+      register: explosiva
+    
+    - name: Otra tarea
+      debug:
+        msg: "{{ explosiva.stdout }}"
+      when: #como un IF
+        explosiva.rc == 0
+#Expresiones para utilizar en los WHEN: when, failed_when,changed_when
+#
+# EXPRESIONES SOBRE TAREAS QUE SE HAN EJECUTADO
+#     explosiva is failed
+#     explosiva is succeded
+#     exlosiva is skypped
+#     explosiva is changed
+#
+# Otras expresiones utiles sobre variables (incluyendo tareas que se han ejecutado)
+#     mivariable is defined
+#     mivariable is undefined or mivariable == false
+#
+#
+#
+    - name: una tarea que comprueba un texto
+      debug:
+        msg: La salida de error de la tarea explosiva contiene 'not found'
+      #when: "'found' not in explosiva.stderr"
+      #when: explosiva.stderr is match (".*not.*")
+      #Regex
+      #
+      # . punto cualquier cosa
+      # [0-9]
+      #[a-z]
+      #
+      #Ocurrencia 
+      # ? opcional
+      #+ 1 o mas
+      #* opconal o las veces que sea
+      #{6} tiene que aparecer 6 veces
+      #{4,8} de 4 a 8 veces
+      #{,9} puede o no aparecer hasta 9 veces
+      #
+      #capturing gropus, poner entre () --> mirar regex101.com
+      # ^ Comienzo de texto
+      # $ Final de Texto
+      when: explosiva.stderr is search("n.t f..nd")
+      
+    
+    #Nuestra primera tarea en bucle
+    - name: Primer bucle
+      debug:
+        msg: "Ahora voy a hacer algo con el puerto: {{ item }}"
+        
+      loop: "{{ puertos }}" 
+      vars:
+        puertos: #Variable tipo lista
+          - 80
+          - 81
+          - 83
+    
+# Variables dentro de loops
+# ansible_loop.allitems       La lista de todos los elementos en el bucle
+# ansible_loop.index          La iteración actual del bucle. (comenzando en 1)
+# ansible_loop.index0         La iteración actual del bucle. (comenzando en 0)
+# ansible_loop.revindex       El número de iteraciones hasta acabar el bucle (comenzando en 1)
+# ansible_loop.revindex0      El número de iteraciones hasta acabar el bucle (comenzando en 0)
+# ansible_loop.first          Verdadero si es la primera iteración
+# ansible_loop.last           Verdadero si es la última iteración
+# ansible_loop.length         El número de elementos en el bucle
+# ansible_loop.previtem       El elemento de la iteración anterior del bucle. Indefinido durante la primera iteración.
+# ansible_loop.nextitem       El elemento de la siguiente iteración del bucle. Indefinido durante la última iteración.
+    
+    - name: CPUs
+      debug:
+          msg: " {{ item }}"
+      
+      
+      loop: "{{ ansible_processor }}" 
+      loop_control:
+        index_var: cpus
+      when: (cpus+1) % 3 == 0  
+ ###
+# Filtros jinja2
+#
+# abs, attr, batch, capitalize, center, default, dictsort, escape, filesizeformat, first, float, forceescape, format, 
+# groupby, indent, int, join, last, length, list, lower, map, max, min, pprint, random, reject, rejectattr, replace, 
+# reverse, round, safe, select, selectattr, slice, sort, string, striptags, sum, title, tojson, trim, truncate, unique, 
+# upper, urlencode, urlize, wordcount, wordwrap, xmlattr
+#
+# Uso {{ variable | upper }}
+#
+# https://jinja.palletsprojects.com/en/2.11.x/templates/#builtin-filters
+
+      
+  #
+  handlers:
+    #Tarea Opcional
+    - name: tarea opcional 1
+      debug:
+        msg: "Me ejecuto opcionalmente 1"
+      listen: mievento
+    #Tarea Opcional 2
+    - name: tarea opcional 2
+      debug:
+        msg: "Me ejecuto opcionalmente 2"
+      listen: mievento
+      
